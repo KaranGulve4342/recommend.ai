@@ -1,19 +1,19 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { UploadDialog } from "@/components/upload-dialog"
-import { Sparkles, TrendingUp, Star, Package, RefreshCw, Loader2, Wand2 } from "lucide-react"
+import { Sparkles, TrendingUp, Star, Package, Loader2, Wand2 } from "lucide-react"
 import { mockRecommendations } from "@/lib/mock-data"
 import type { Recommendation } from "@/lib/types"
 import { toast } from "sonner"
 import {
   generateRecommendations,
-  getStoredRecommendations,
+  getAllStoredRecommendations,
   uploadProducts,
   uploadUserBehavior
 } from "@/lib/api"
@@ -25,44 +25,36 @@ export default function RecommendationsPage() {
       "These products are recommended based on user browsing patterns, purchase history, and product similarity analysis."
   )
   const [userId, setUserId] = useState<string>("U001")
-  const [isLoading, setIsLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Fetch stored recommendations for a user
-  const fetchRecommendations = useCallback(async (uid: string, showToast = false) => {
-    if (!uid.trim()) {
-      toast.error("Please enter a User ID")
-      return
-    }
-    
-    try {
-      setIsLoading(true)
-      const data = await getStoredRecommendations(uid)
-      
-      // Handle different response formats
-      if (data?.recommendations && Array.isArray(data.recommendations)) {
-        setRecommendations(data.recommendations)
-        if (data.explanation) {
-          setExplanation(data.explanation)
+  // Fetch all stored recommendations on page load
+  useEffect(() => {
+    const fetchStoredRecommendations = async () => {
+      try {
+        setIsLoading(true)
+        const data = await getAllStoredRecommendations()
+        
+        // Handle different response formats
+        if (data?.recommendations && Array.isArray(data.recommendations)) {
+          setRecommendations(data.recommendations)
+          if (data.explanation) {
+            setExplanation(data.explanation)
+          }
+        } else if (Array.isArray(data)) {
+          setRecommendations(data)
         }
-      } else if (Array.isArray(data)) {
-        setRecommendations(data)
+        
+        console.log("Stored recommendations loaded successfully")
+      } catch (error) {
+        console.error("Failed to fetch stored recommendations:", error)
+        // Silently fail and keep using mock data
+      } finally {
+        setIsLoading(false)
       }
-      
-      if (showToast) {
-        toast.success("Recommendations loaded successfully")
-      }
-    } catch (error) {
-      console.error("Failed to fetch recommendations:", error)
-      if (showToast) {
-        toast.error("Failed to fetch recommendations", {
-          description: error instanceof Error ? error.message : "Using local data"
-        })
-      }
-      // Keep using mock data on error
-    } finally {
-      setIsLoading(false)
     }
+
+    fetchStoredRecommendations()
   }, [])
 
   // Generate new recommendations for a user
@@ -103,13 +95,7 @@ export default function RecommendationsPage() {
     }
   }
 
-  // Load initial recommendations
-  useEffect(() => {
-    fetchRecommendations(userId)
-  }, []) // Only run once on mount
-
   const handleUpload = async (catalogFile: File | null, behaviourFile: File | null) => {
-    setIsLoading(true)
     
     try {
       if (catalogFile) {
@@ -129,8 +115,6 @@ export default function RecommendationsPage() {
       toast.error("Upload failed", {
         description: error instanceof Error ? error.message : "Please try again"
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -185,19 +169,7 @@ export default function RecommendationsPage() {
                   className="mt-1.5"
                 />
               </div>
-              <div className="flex items-end gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={() => fetchRecommendations(userId, true)}
-                  disabled={isLoading || !userId.trim()}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                  )}
-                  Load Stored
-                </Button>
+              <div className="flex items-end">
                 <Button 
                   onClick={handleGenerateRecommendations}
                   disabled={isGenerating || !userId.trim()}
@@ -207,7 +179,7 @@ export default function RecommendationsPage() {
                   ) : (
                     <Sparkles className="h-4 w-4 mr-2" />
                   )}
-                  Generate New
+                  Generate
                 </Button>
               </div>
             </div>
@@ -266,13 +238,23 @@ export default function RecommendationsPage() {
         {/* Recommendations Grid */}
         <div>
           <h2 className="text-lg font-semibold mb-4">Recommended Products</h2>
-          {recommendations.length === 0 ? (
+          {isLoading ? (
+            <Card className="p-8 text-center">
+              <CardContent>
+                <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Loading Recommendations...</h3>
+                <p className="text-muted-foreground">
+                  Fetching stored recommendations from the database
+                </p>
+              </CardContent>
+            </Card>
+          ) : recommendations.length === 0 ? (
             <Card className="p-8 text-center">
               <CardContent>
                 <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Recommendations Yet</h3>
                 <p className="text-muted-foreground mb-4">
-                  Upload product catalog and user behavior data, then click &quot;Generate New&quot; to create personalized recommendations.
+                  Upload product catalog and user behavior data, then click &quot;Generate&quot; to create personalized recommendations.
                 </p>
               </CardContent>
             </Card>

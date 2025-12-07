@@ -120,6 +120,14 @@ export async function getStoredRecommendations(userId: string): Promise<any> {
   return apiFetch(`/api/recommendations/stored/${encodeURIComponent(userId)}`, { method: 'GET' })
 }
 
+/**
+ * GET /api/recommendations/stored
+ * Get all stored user recommendations from database
+ */
+export async function getAllStoredRecommendations(): Promise<any> {
+  return apiFetch('/api/recommendations/stored', { method: 'GET' })
+}
+
 // ============================================================================
 // PRODUCTS APIs (Tag: Products)
 // ============================================================================
