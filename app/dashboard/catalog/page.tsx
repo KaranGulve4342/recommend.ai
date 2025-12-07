@@ -2,20 +2,21 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { UploadDialog } from "@/components/upload-dialog"
+import { AddProductDialog } from "@/components/add-product-dialog"
 import { EditableTable } from "@/components/editable-table"
 import { mockCatalog } from "@/lib/mock-data"
 import { Package, Database, RefreshCw, Loader2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { 
-  getProducts, 
-  addProduct, 
-  updateProduct, 
-  deleteProduct, 
+import {
+  getProducts,
+  addProduct,
+  updateProduct,
+  deleteProduct,
   uploadProducts,
   uploadUserBehavior,
-  type Product 
+  type Product
 } from "@/lib/api"
 
 interface CatalogItem {
@@ -86,6 +87,7 @@ export default function CatalogPage() {
     try {
       // Prepare product data for API
       const productData: Product = {
+        product_id: productId,
         name: String(data.name),
         brand: String(data.brand),
         category: String(data.category),
@@ -136,33 +138,42 @@ export default function CatalogPage() {
     }
   }
 
-  const handleAdd = async (data: Record<string, string | number>) => {
+  const handleAddFromDialog = async (data: {
+    product_id: string
+    name: string
+    category: string
+    price: number
+    rating: number
+    brand: string
+    features: string
+  }) => {
     try {
-      // Prepare product data for API
       const productData: Product = {
-        name: String(data.name || "New Product"),
-        brand: String(data.brand || "Unknown"),
-        category: String(data.category || "General"),
-        price: Number(data.price || 0),
-        rating: Number(data.rating || 0),
-        features: String(data.features || ""),
+        product_id: data.product_id,
+        name: data.name,
+        brand: data.brand,
+        category: data.category,
+        price: data.price,
+        rating: data.rating,
+        features: data.features,
       }
       
       const result = await addProduct(productData)
       
-      // Use returned product_id or generate one
-      const newId = result?.product_id || `P${String(catalog.length + 1).padStart(3, "0")}`
+      // Use returned data or the input
+      const newProduct: CatalogItem = {
+        ...productData,
+        product_id: result?.product_id || data.product_id,
+      }
       
-      setCatalog((prev) => [...prev, { ...productData, product_id: newId }])
+      setCatalog((prev) => [...prev, newProduct])
       toast.success("Product added successfully")
     } catch (error) {
       console.error("Failed to add product:", error)
       toast.error("Failed to add product", {
         description: error instanceof Error ? error.message : "Please try again"
       })
-      // Still add locally for better UX
-      const newId = `P${String(catalog.length + 1).padStart(3, "0")}`
-      setCatalog((prev) => [...prev, { ...data, product_id: newId } as CatalogItem])
+      throw error // Re-throw to let dialog handle it
     }
   }
 
@@ -216,6 +227,7 @@ export default function CatalogPage() {
               )}
               <span className="ml-2">Refresh</span>
             </Button>
+            <AddProductDialog onAdd={handleAddFromDialog} />
             <UploadDialog onUpload={handleUpload} />
           </div>
         </div>
@@ -271,7 +283,6 @@ export default function CatalogPage() {
               columns={columns}
               onUpdate={handleUpdate}
               onDelete={handleDelete}
-              onAdd={handleAdd}
             />
           </CardContent>
         </Card>

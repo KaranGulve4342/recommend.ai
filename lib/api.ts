@@ -136,6 +136,7 @@ export async function getAllStoredRecommendations(): Promise<any> {
  * Product schema from OpenAPI spec
  */
 export interface Product {
+  product_id: string
   name: string
   category: string
   price: number
