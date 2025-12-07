@@ -1,5 +1,6 @@
 import type React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
+import { Toaster } from "sonner"
 
 export default function DashboardLayout({
   children,
@@ -12,6 +13,7 @@ export default function DashboardLayout({
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
+      <Toaster position="top-right" richColors closeButton />
     </div>
   )
 }

@@ -1,14 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { UploadDialog } from "@/components/upload-dialog"
 import { EditableTable } from "@/components/editable-table"
 import { mockCatalog } from "@/lib/mock-data"
-import { Package, Database } from "lucide-react"
+import { Package, Database, RefreshCw, Loader2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { 
+  getProducts, 
+  addProduct, 
+  updateProduct, 
+  deleteProduct, 
+  uploadProducts,
+  uploadUserBehavior,
+  type Product 
+} from "@/lib/api"
+
+interface CatalogItem {
+  product_id: string
+  name: string
+  brand: string
+  category: string
+  price: number
+  rating: number
+  features: string
+}
 
 export default function CatalogPage() {
-  const [catalog, setCatalog] = useState(mockCatalog)
+  const [catalog, setCatalog] = useState<CatalogItem[]>(mockCatalog)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const columns = [
     { key: "product_id", label: "Product ID", editable: false },
@@ -20,28 +43,154 @@ export default function CatalogPage() {
     { key: "features", label: "Features", editable: true },
   ]
 
-  const handleUpdate = (rowIndex: number, data: Record<string, string | number>) => {
-    setCatalog((prev) => {
-      const updated = [...prev]
-      updated[rowIndex] = data as typeof catalog[0]
-      return updated
-    })
+  // Fetch products from API
+  const fetchProducts = useCallback(async (showToast = false) => {
+    try {
+      setIsRefreshing(true)
+      const data = await getProducts()
+      
+      // Handle different response formats
+      if (Array.isArray(data)) {
+        setCatalog(data)
+      } else if (data?.products && Array.isArray(data.products)) {
+        setCatalog(data.products)
+      } else if (data?.data && Array.isArray(data.data)) {
+        setCatalog(data.data)
+      }
+      
+      if (showToast) {
+        toast.success("Products refreshed successfully")
+      }
+    } catch (error) {
+      console.error("Failed to fetch products:", error)
+      if (showToast) {
+        toast.error("Failed to fetch products", {
+          description: error instanceof Error ? error.message : "Using local data"
+        })
+      }
+      // Keep using mock data on error
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [])
+
+  // Load products on mount
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
+
+  const handleUpdate = async (rowIndex: number, data: Record<string, string | number>) => {
+    const item = catalog[rowIndex]
+    const productId = item.product_id
+    
+    try {
+      // Prepare product data for API
+      const productData: Product = {
+        name: String(data.name),
+        brand: String(data.brand),
+        category: String(data.category),
+        price: Number(data.price),
+        rating: Number(data.rating),
+        features: String(data.features),
+      }
+      
+      await updateProduct(productId, productData)
+      
+      // Update local state
+      setCatalog((prev) => {
+        const updated = [...prev]
+        updated[rowIndex] = { ...data, product_id: productId } as CatalogItem
+        return updated
+      })
+      
+      toast.success("Product updated successfully")
+    } catch (error) {
+      console.error("Failed to update product:", error)
+      toast.error("Failed to update product", {
+        description: error instanceof Error ? error.message : "Please try again"
+      })
+      // Still update locally for better UX
+      setCatalog((prev) => {
+        const updated = [...prev]
+        updated[rowIndex] = { ...prev[rowIndex], ...data } as CatalogItem
+        return updated
+      })
+    }
   }
 
-  const handleDelete = (rowIndex: number) => {
-    setCatalog((prev) => prev.filter((_, idx) => idx !== rowIndex))
+  const handleDelete = async (rowIndex: number) => {
+    const item = catalog[rowIndex]
+    const productId = item.product_id
+    
+    try {
+      await deleteProduct(productId)
+      setCatalog((prev) => prev.filter((_, idx) => idx !== rowIndex))
+      toast.success("Product deleted successfully")
+    } catch (error) {
+      console.error("Failed to delete product:", error)
+      toast.error("Failed to delete product", {
+        description: error instanceof Error ? error.message : "Please try again"
+      })
+      // Still delete locally for better UX
+      setCatalog((prev) => prev.filter((_, idx) => idx !== rowIndex))
+    }
   }
 
-  const handleAdd = (data: Record<string, string | number>) => {
-    const newId = `P${String(catalog.length + 1).padStart(3, "0")}`
-    setCatalog((prev) => [...prev, { ...data, product_id: newId } as typeof catalog[0]])
+  const handleAdd = async (data: Record<string, string | number>) => {
+    try {
+      // Prepare product data for API
+      const productData: Product = {
+        name: String(data.name || "New Product"),
+        brand: String(data.brand || "Unknown"),
+        category: String(data.category || "General"),
+        price: Number(data.price || 0),
+        rating: Number(data.rating || 0),
+        features: String(data.features || ""),
+      }
+      
+      const result = await addProduct(productData)
+      
+      // Use returned product_id or generate one
+      const newId = result?.product_id || `P${String(catalog.length + 1).padStart(3, "0")}`
+      
+      setCatalog((prev) => [...prev, { ...productData, product_id: newId }])
+      toast.success("Product added successfully")
+    } catch (error) {
+      console.error("Failed to add product:", error)
+      toast.error("Failed to add product", {
+        description: error instanceof Error ? error.message : "Please try again"
+      })
+      // Still add locally for better UX
+      const newId = `P${String(catalog.length + 1).padStart(3, "0")}`
+      setCatalog((prev) => [...prev, { ...data, product_id: newId } as CatalogItem])
+    }
   }
 
   const handleUpload = async (catalogFile: File | null, behaviourFile: File | null) => {
-    // TODO: Implement actual CSV parsing and upload
-    console.log("Files to upload:", { catalogFile, behaviourFile })
-    // For now, simulate success
-    alert("Files uploaded successfully!")
+    setIsLoading(true)
+    
+    try {
+      if (catalogFile) {
+        await uploadProducts(catalogFile)
+        toast.success("Products uploaded successfully")
+      }
+      
+      if (behaviourFile) {
+        await uploadUserBehavior(behaviourFile)
+        toast.success("User behavior uploaded successfully")
+      }
+      
+      // Refresh products after upload
+      await fetchProducts()
+      
+    } catch (error) {
+      console.error("Upload failed:", error)
+      toast.error("Upload failed", {
+        description: error instanceof Error ? error.message : "Please try again"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -53,7 +202,22 @@ export default function CatalogPage() {
             <h1 className="text-2xl font-bold text-foreground">Product Catalog</h1>
             <p className="text-sm text-muted-foreground">Manage your product inventory</p>
           </div>
-          <UploadDialog onUpload={handleUpload} />
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => fetchProducts(true)}
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              <span className="ml-2">Refresh</span>
+            </Button>
+            <UploadDialog onUpload={handleUpload} />
+          </div>
         </div>
       </div>
 
@@ -103,7 +267,7 @@ export default function CatalogPage() {
           </CardHeader>
           <CardContent>
             <EditableTable
-              data={catalog}
+              data={catalog as unknown as Record<string, string | number>[]}
               columns={columns}
               onUpdate={handleUpdate}
               onDelete={handleDelete}
