@@ -27,13 +27,13 @@ export function Navbar() {
             Home
           </Link>
           <Link
-            href="/recommendations"
+            href="/dashboard/recommendations"
             className={cn(
               "text-sm font-medium transition-colors hover:text-primary",
-              pathname === "/recommendations" ? "text-primary" : "text-muted-foreground",
+              pathname.startsWith("/dashboard") ? "text-primary" : "text-muted-foreground",
             )}
           >
-            Recommendations
+            Dashboard
           </Link>
         </nav>
       </div>

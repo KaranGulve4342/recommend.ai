@@ -1,5 +1,131 @@
 import type { ApiResponse } from "./types"
 
+export const mockCatalog = [
+  {
+    product_id: "P001",
+    name: "Wireless Bluetooth Headphones",
+    brand: "SoundMax",
+    category: "Electronics",
+    price: 2999,
+    rating: 4.5,
+    features: "Noise Cancellation;40hrs Battery;Foldable",
+    stock: 120,
+  },
+  {
+    product_id: "P002",
+    name: "Smart Fitness Watch",
+    brand: "FitTrack",
+    category: "Wearables",
+    price: 5499,
+    rating: 4.3,
+    features: "Heart Rate Monitor;GPS;Waterproof",
+    stock: 85,
+  },
+  {
+    product_id: "P003",
+    name: "Portable Power Bank 20000mAh",
+    brand: "ChargeMax",
+    category: "Accessories",
+    price: 1499,
+    rating: 4.6,
+    features: "Fast Charging;Dual USB;LED Display",
+    stock: 200,
+  },
+  {
+    product_id: "P004",
+    name: "Gaming Mouse RGB",
+    brand: "GamerPro",
+    category: "Electronics",
+    price: 1899,
+    rating: 4.7,
+    features: "16000 DPI;Programmable Buttons;RGB Lighting",
+    stock: 150,
+  },
+  {
+    product_id: "P005",
+    name: "USB-C Hub Multiport",
+    brand: "TechConnect",
+    category: "Accessories",
+    price: 2299,
+    rating: 4.4,
+    features: "7-in-1;4K HDMI;SD Card Reader",
+    stock: 95,
+  },
+]
+
+export const mockUserBehaviour = [
+  {
+    user_id: "U001",
+    product_id: "P001",
+    action: "view",
+    timestamp: "2025-12-01 10:30:00",
+    duration_seconds: 45,
+  },
+  {
+    user_id: "U001",
+    product_id: "P002",
+    action: "view",
+    timestamp: "2025-12-01 10:35:00",
+    duration_seconds: 30,
+  },
+  {
+    user_id: "U001",
+    product_id: "P001",
+    action: "add_to_cart",
+    timestamp: "2025-12-01 10:40:00",
+    duration_seconds: 0,
+  },
+  {
+    user_id: "U002",
+    product_id: "P003",
+    action: "view",
+    timestamp: "2025-12-01 11:15:00",
+    duration_seconds: 60,
+  },
+  {
+    user_id: "U002",
+    product_id: "P003",
+    action: "purchase",
+    timestamp: "2025-12-01 11:20:00",
+    duration_seconds: 0,
+  },
+  {
+    user_id: "U003",
+    product_id: "P004",
+    action: "view",
+    timestamp: "2025-12-01 14:00:00",
+    duration_seconds: 90,
+  },
+  {
+    user_id: "U003",
+    product_id: "P005",
+    action: "view",
+    timestamp: "2025-12-01 14:10:00",
+    duration_seconds: 40,
+  },
+  {
+    user_id: "U004",
+    product_id: "P002",
+    action: "view",
+    timestamp: "2025-12-02 09:00:00",
+    duration_seconds: 55,
+  },
+  {
+    user_id: "U004",
+    product_id: "P002",
+    action: "add_to_cart",
+    timestamp: "2025-12-02 09:05:00",
+    duration_seconds: 0,
+  },
+  {
+    user_id: "U005",
+    product_id: "P001",
+    action: "view",
+    timestamp: "2025-12-02 15:30:00",
+    duration_seconds: 35,
+  },
+]
+
 export const mockRecommendations: ApiResponse = {
   recommendations: [
     {

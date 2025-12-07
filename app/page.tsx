@@ -22,7 +22,7 @@ export default function HomePage() {
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link href="/recommendations">
+                <Link href="/dashboard/recommendations">
                   <Upload className="mr-2 h-5 w-5" aria-hidden="true" />
                   Get Started
                 </Link>
@@ -101,7 +101,7 @@ export default function HomePage() {
               </p>
               <div className="mt-8">
                 <Button asChild size="lg">
-                  <Link href="/recommendations">Start Now</Link>
+                  <Link href="/dashboard/recommendations">Start Now</Link>
                 </Button>
               </div>
             </div>
