@@ -14,11 +14,10 @@ export default function CatalogPage() {
     { key: "product_id", label: "Product ID", editable: false },
     { key: "name", label: "Product Name", editable: true },
     { key: "brand", label: "Brand", editable: true },
-    { key: "category", label: "Category", editable: true },
+    { key: "category", label: "Category", editable: true, type: "badge" as const },
     { key: "price", label: "Price (₹)", editable: true, type: "number" as const },
     { key: "rating", label: "Rating", editable: true, type: "number" as const },
     { key: "features", label: "Features", editable: true },
-    { key: "stock", label: "Stock", editable: true, type: "number" as const },
   ]
 
   const handleUpdate = (rowIndex: number, data: Record<string, string | number>) => {
@@ -86,12 +85,12 @@ export default function CatalogPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Stock</CardTitle>
+              <CardTitle className="text-sm font-medium">Average Price</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{catalog.reduce((sum, p) => sum + p.stock, 0)}</div>
-              <p className="text-xs text-muted-foreground">Units available</p>
+              <div className="text-2xl font-bold">₹{(catalog.reduce((sum, p) => sum + p.price, 0) / catalog.length).toFixed(0)}</div>
+              <p className="text-xs text-muted-foreground">Per product</p>
             </CardContent>
           </Card>
         </div>

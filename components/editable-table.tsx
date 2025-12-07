@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Pencil, Check, X, Trash2, Plus, Search } from "lucide-react"
 
 type DataRow = Record<string, string | number>
@@ -14,7 +15,7 @@ interface EditableTableProps {
     key: string
     label: string
     editable?: boolean
-    type?: "text" | "number"
+    type?: "text" | "number" | "badge"
   }[]
   onUpdate?: (rowIndex: number, data: DataRow) => void
   onDelete?: (rowIndex: number) => void
@@ -134,7 +135,7 @@ export function EditableTable({ data, columns, onUpdate, onDelete, onAdd }: Edit
                       <TableCell key={col.key}>
                         {isEditing && col.editable !== false ? (
                           <Input
-                            type={col.type || "text"}
+                            type={col.type === "number" ? "number" : "text"}
                             value={displayData[col.key] ?? ""}
                             onChange={(e) =>
                               handleCellChange(
@@ -144,6 +145,10 @@ export function EditableTable({ data, columns, onUpdate, onDelete, onAdd }: Edit
                             }
                             className="h-8"
                           />
+                        ) : col.type === "badge" ? (
+                          <Badge variant="secondary" className="font-normal">
+                            {String(displayData[col.key] ?? "")}
+                          </Badge>
                         ) : (
                           <span className="text-sm">{String(displayData[col.key] ?? "")}</span>
                         )}

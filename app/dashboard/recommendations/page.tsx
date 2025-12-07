@@ -147,10 +147,10 @@ export default function RecommendationsPage() {
                     </div>
                   </div>
 
-                  {/* Stock */}
+                  {/* Category */}
                   <div className="pt-2">
-                    <Badge variant={item.stock > 100 ? "default" : item.stock > 50 ? "secondary" : "destructive"}>
-                      {item.stock} in stock
+                    <Badge variant="secondary">
+                      {item.category}
                     </Badge>
                   </div>
                 </CardContent>

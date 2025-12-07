@@ -6,7 +6,6 @@ export interface Recommendation {
   price: number
   rating: number
   features: string
-  stock: number
   similarity_score: number
   overall_score: number
 }

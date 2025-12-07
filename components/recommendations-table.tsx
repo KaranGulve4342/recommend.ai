@@ -191,8 +191,8 @@ export function RecommendationsTable({ recommendations }: RecommendationsTablePr
                     <span className="font-medium text-foreground">{item.rating.toFixed(1)}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Stock:</span>{" "}
-                    <span className="font-medium text-foreground">{item.stock}</span>
+                    <span className="text-muted-foreground">Category:</span>{" "}
+                    <Badge variant="secondary" className="font-normal">{item.category}</Badge>
                   </div>
                   <div>
                     <span className="text-muted-foreground">ID:</span>{" "}
@@ -250,7 +250,7 @@ export function RecommendationsTable({ recommendations }: RecommendationsTablePr
                 <TableHead scope="col" className="min-w-48">
                   Features
                 </TableHead>
-                <TableHead scope="col">Stock</TableHead>
+                <TableHead scope="col">Category</TableHead>
                 <TableHead scope="col">
                   <Button
                     variant="ghost"
@@ -298,11 +298,15 @@ export function RecommendationsTable({ recommendations }: RecommendationsTablePr
                   </TableCell>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.brand}</TableCell>
-                  <TableCell>{item.category}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="font-normal">{item.category}</Badge>
+                  </TableCell>
                   <TableCell>₹{item.price.toLocaleString()}</TableCell>
                   <TableCell>{item.rating.toFixed(1)}</TableCell>
                   <TableCell>{renderFeatures(item.features)}</TableCell>
-                  <TableCell>{item.stock}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="font-normal">{item.category}</Badge>
+                  </TableCell>
                   <TableCell>{item.similarity_score.toFixed(2)}</TableCell>
                   <TableCell>{item.overall_score.toFixed(2)}</TableCell>
                 </TableRow>

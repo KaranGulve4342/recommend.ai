@@ -15,7 +15,6 @@ export default function BehaviourPage() {
     { key: "product_id", label: "Product ID", editable: true },
     { key: "action", label: "Action", editable: true },
     { key: "timestamp", label: "Timestamp", editable: true },
-    { key: "duration_seconds", label: "Duration (s)", editable: true, type: "number" as const },
   ]
 
   const handleUpdate = (rowIndex: number, data: Record<string, string | number>) => {
