@@ -5,6 +5,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Pencil, Check, X, Trash2, Plus, Search } from "lucide-react"
 
 type DataRow = Record<string, string | number>
@@ -15,7 +22,8 @@ interface EditableTableProps {
     key: string
     label: string
     editable?: boolean
-    type?: "text" | "number" | "badge"
+    type?: "text" | "number" | "badge" | "select"
+    options?: { value: string; label: string }[]
   }[]
   onUpdate?: (rowIndex: number, data: DataRow) => void
   onDelete?: (rowIndex: number) => void
@@ -134,17 +142,35 @@ export function EditableTable({ data, columns, onUpdate, onDelete, onAdd }: Edit
                     {columns.map((col) => (
                       <TableCell key={col.key}>
                         {isEditing && col.editable !== false ? (
-                          <Input
-                            type={col.type === "number" ? "number" : "text"}
-                            value={displayData[col.key] ?? ""}
-                            onChange={(e) =>
-                              handleCellChange(
-                                col.key,
-                                col.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value
-                              )
-                            }
-                            className="h-8"
-                          />
+                          col.type === "select" && col.options ? (
+                            <Select
+                              value={String(displayData[col.key] ?? "")}
+                              onValueChange={(value) => handleCellChange(col.key, value)}
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {col.options.map((option) => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input
+                              type={col.type === "number" ? "number" : "text"}
+                              value={displayData[col.key] ?? ""}
+                              onChange={(e) =>
+                                handleCellChange(
+                                  col.key,
+                                  col.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value
+                                )
+                              }
+                              className="h-8"
+                            />
+                          )
                         ) : col.type === "badge" ? (
                           <Badge variant="secondary" className="font-normal">
                             {String(displayData[col.key] ?? "")}

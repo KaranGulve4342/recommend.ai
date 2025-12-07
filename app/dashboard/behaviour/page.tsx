@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { UploadDialog } from "@/components/upload-dialog"
+import { AddBehaviorDialog } from "@/components/add-behavior-dialog"
 import { EditableTable } from "@/components/editable-table"
 import { mockUserBehaviour } from "@/lib/mock-data"
 import { Users, Activity, ShoppingCart, RefreshCw, Loader2 } from "lucide-react"
@@ -24,6 +25,7 @@ interface BehaviorItem {
   action: string
   timestamp: string
   behavior_id?: string
+  _id?: string
 }
 
 export default function BehaviourPage() {
@@ -34,7 +36,17 @@ export default function BehaviourPage() {
   const columns = [
     { key: "user_id", label: "User ID", editable: false },
     { key: "product_id", label: "Product ID", editable: true },
-    { key: "action", label: "Action", editable: true },
+    { 
+      key: "action", 
+      label: "Action", 
+      editable: true,
+      type: "select" as const,
+      options: [
+        { value: "view", label: "View" },
+        { value: "add_to_cart", label: "Add to Cart" },
+        { value: "purchase", label: "Purchase" }
+      ]
+    },
     { key: "timestamp", label: "Timestamp", editable: true },
   ]
 
@@ -44,14 +56,20 @@ export default function BehaviourPage() {
       setIsRefreshing(true)
       const data = await getBehaviors()
       
+      console.log("Fetched behaviors data:", data)
+      
       // Handle different response formats
+      let behaviorsList: BehaviorItem[] = []
       if (Array.isArray(data)) {
-        setBehaviour(data)
+        behaviorsList = data
       } else if (data?.behaviors && Array.isArray(data.behaviors)) {
-        setBehaviour(data.behaviors)
+        behaviorsList = data.behaviors
       } else if (data?.data && Array.isArray(data.data)) {
-        setBehaviour(data.data)
+        behaviorsList = data.data
       }
+      
+      console.log("Behaviors list with IDs:", behaviorsList.slice(0, 2))
+      setBehaviour(behaviorsList)
       
       if (showToast) {
         toast.success("Behaviors refreshed successfully")
@@ -76,7 +94,17 @@ export default function BehaviourPage() {
 
   const handleUpdate = async (rowIndex: number, data: Record<string, string | number>) => {
     const item = behaviour[rowIndex]
-    const behaviorId = item.behavior_id || item.user_id
+    // Use _id first, then fallback to behavior_id, then user_id
+    const behaviorId = item._id || item.behavior_id || item.user_id
+    
+    console.log("Updating behavior:", { item, behaviorId, _id: item._id })
+    
+    if (!item._id) {
+      toast.error("Cannot update: Missing _id field", {
+        description: "Please refresh the page to load the latest data with IDs"
+      })
+      return
+    }
     
     try {
       // Prepare behavior data for API
@@ -113,7 +141,17 @@ export default function BehaviourPage() {
 
   const handleDelete = async (rowIndex: number) => {
     const item = behaviour[rowIndex]
-    const behaviorId = item.behavior_id || item.user_id
+    // Use _id first, then fallback to behavior_id, then user_id
+    const behaviorId = item._id || item.behavior_id || item.user_id
+    
+    console.log("Deleting behavior:", { item, behaviorId, _id: item._id })
+    
+    if (!item._id) {
+      toast.error("Cannot delete: Missing _id field", {
+        description: "Please refresh the page to load the latest data with IDs"
+      })
+      return
+    }
     
     try {
       await deleteBehavior(behaviorId)
@@ -129,16 +167,13 @@ export default function BehaviourPage() {
     }
   }
 
-  const handleAdd = async (data: Record<string, string | number>) => {
+  const handleAddFromDialog = async (data: { user_id: string; product_id: string; action: string; timestamp: string }) => {
     try {
-      // Prepare behavior data for API
-      const newUserId = String(data.user_id) || `U${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`
-      
       const behaviorData: UserBehavior = {
-        user_id: newUserId,
-        product_id: String(data.product_id || "P001"),
-        action: String(data.action || "view"),
-        timestamp: String(data.timestamp || new Date().toISOString().replace('T', ' ').slice(0, 19)),
+        user_id: data.user_id,
+        product_id: data.product_id,
+        action: data.action,
+        timestamp: data.timestamp,
       }
       
       const result = await addBehavior(behaviorData)
@@ -147,6 +182,7 @@ export default function BehaviourPage() {
       const newBehavior: BehaviorItem = {
         ...behaviorData,
         behavior_id: result?.behavior_id,
+        _id: result?._id,
       }
       
       setBehaviour((prev) => [...prev, newBehavior])
@@ -156,9 +192,7 @@ export default function BehaviourPage() {
       toast.error("Failed to add behavior", {
         description: error instanceof Error ? error.message : "Please try again"
       })
-      // Still add locally for better UX
-      const newUserId = `U${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`
-      setBehaviour((prev) => [...prev, { ...data, user_id: newUserId } as BehaviorItem])
+      throw error // Re-throw to let dialog handle it
     }
   }
 
@@ -217,6 +251,7 @@ export default function BehaviourPage() {
               )}
               <span className="ml-2">Refresh</span>
             </Button>
+            <AddBehaviorDialog onAdd={handleAddFromDialog} />
             <UploadDialog onUpload={handleUpload} />
           </div>
         </div>
@@ -274,7 +309,6 @@ export default function BehaviourPage() {
               columns={columns}
               onUpdate={handleUpdate}
               onDelete={handleDelete}
-              onAdd={handleAdd}
             />
           </CardContent>
         </Card>
