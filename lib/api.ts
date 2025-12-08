@@ -4,7 +4,7 @@
  * Base URL configured via environment variable NEXT_PUBLIC_API_URL
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://0f1c67d9501e.ngrok-free.app'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://01d590e555b5.ngrok-free.app'
 
 /**
  * Base fetch wrapper with error handling
