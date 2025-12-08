@@ -24,7 +24,7 @@ export default function RecommendationsPage() {
     mockRecommendations.explanation ||
       "These products are recommended based on user browsing patterns, purchase history, and product similarity analysis."
   )
-  const [userId, setUserId] = useState<string>("U001")
+  const [userId, setUserId] = useState<string>("U1001")
   const [isGenerating, setIsGenerating] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -165,7 +165,7 @@ export default function RecommendationsPage() {
                   id="user-id"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  placeholder="Enter user ID (e.g., U001)"
+                  placeholder="Enter user ID (e.g., U1001)"
                   className="mt-1.5"
                 />
               </div>
