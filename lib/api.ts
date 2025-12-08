@@ -125,7 +125,7 @@ export async function getStoredRecommendations(userId: string): Promise<any> {
  * Get all stored user recommendations from database
  */
 export async function getAllStoredRecommendations(): Promise<any> {
-  return apiFetch('/api/recommendations/stored', { method: 'GET' })
+  return apiFetch('/api/stored/recommendations', { method: 'GET' })
 }
 
 // ============================================================================
